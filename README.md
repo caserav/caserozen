@@ -5,13 +5,13 @@ Esta es la aplicación de gestión de propiedades para caseros, complementaria a
 ## Archivos de la Aplicación del Casero
 
 ### HTML
-- `landlord-index.html` - Archivo principal de la aplicación
+- `index.html` - Archivo principal de la aplicación
 
 ### CSS
-- `landlord-styles.css` - Estilos con tema teal (verde azulado)
+- `styles.css` - Estilos con tema teal (verde azulado)
 
 ### JavaScript
-Todos los archivos JS están en la carpeta `landlord-js/`:
+Todos los archivos JS están en la carpeta `js/`:
 - `config.js` - Configuración de Supabase
 - `auth.js` - Autenticación con Google
 - `ui.js` - Funciones de interfaz (sidebar, toasts, navegación)
@@ -23,7 +23,7 @@ Todos los archivos JS están en la carpeta `landlord-js/`:
 - `app.js` - Inicialización principal
 
 ### Otros
-- `landlord-manifest.json` - Configuración PWA
+- `manifest.json` - Configuración PWA
 
 ## Características Principales
 
@@ -96,10 +96,10 @@ Ambas aplicaciones (inquilino y casero) comparten la misma base de datos Supabas
 
 ## Instalación
 
-1. Sube todos los archivos `landlord-*` a tu nuevo repositorio
-2. Sube la carpeta `landlord-js/` completa
+1. Sube todos los archivos a tu repositorio o servidor web
+2. Asegúrate de que la carpeta `js/` esté en la raíz junto con `index.html`
 3. La base de datos ya está configurada y lista para usar
-4. Accede a `landlord-index.html` para usar la aplicación
+4. Accede a `index.html` (o simplemente abre la URL raíz del sitio)
 
 ## Autenticación
 
