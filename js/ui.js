@@ -65,6 +65,48 @@ function formatDateShort(dateString) {
 }
 
 function setupEventListeners() {
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const targetTab = this.dataset.tab;
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            if (targetTab === 'login') {
+                document.getElementById('loginForm').style.display = 'block';
+                document.getElementById('registerForm').style.display = 'none';
+            } else {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('registerForm').style.display = 'block';
+            }
+        });
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        await loginWithEmail(email, password);
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('register-email').value;
+        const password = document.getElementById('register-password').value;
+        const confirmPassword = document.getElementById('register-password-confirm').value;
+
+        if (password !== confirmPassword) {
+            showToast('Las contraseñas no coinciden');
+            return;
+        }
+
+        if (password.length < 6) {
+            showToast('La contraseña debe tener al menos 6 caracteres');
+            return;
+        }
+
+        await registerWithEmail(email, password);
+    });
+
     document.getElementById('btnGoogleLogin').addEventListener('click', async () => {
         await loginWithGoogle();
     });

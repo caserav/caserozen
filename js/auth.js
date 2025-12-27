@@ -38,11 +38,45 @@ async function initAuth() {
     }
 }
 
+async function loginWithEmail(email, password) {
+    const { data, error } = await _supabase.auth.signInWithPassword({
+        email,
+        password
+    });
+
+    if (error) {
+        console.error('Login error:', error);
+        showToast('Error: ' + error.message);
+        return false;
+    }
+
+    return true;
+}
+
+async function registerWithEmail(email, password) {
+    const { data, error } = await _supabase.auth.signUp({
+        email,
+        password
+    });
+
+    if (error) {
+        console.error('Register error:', error);
+        showToast('Error: ' + error.message);
+        return false;
+    }
+
+    showToast('¡Cuenta creada! Iniciando sesión...');
+    return true;
+}
+
 async function loginWithGoogle() {
+    const currentUrl = window.location.href;
+    const baseUrl = currentUrl.split('?')[0];
+
     const { error } = await _supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            redirectTo: window.location.origin
+            redirectTo: baseUrl
         }
     });
 
