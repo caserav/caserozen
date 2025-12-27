@@ -65,9 +65,47 @@ function formatDateShort(dateString) {
 }
 
 function setupEventListeners() {
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tab = this.dataset.tab;
+
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+
+            this.classList.add('active');
+            document.getElementById(tab + 'Form').classList.add('active');
+        });
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        await login(email, password);
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('register-name').value;
+        const email = document.getElementById('register-email').value;
+        const password = document.getElementById('register-password').value;
+        const passwordConfirm = document.getElementById('register-password-confirm').value;
+
+        if (password !== passwordConfirm) {
+            showToast('Las contraseñas no coinciden');
+            return;
+        }
+
+        if (password.length < 6) {
+            showToast('La contraseña debe tener al menos 6 caracteres');
+            return;
+        }
+
+        await register(email, password, name);
+    });
+
     document.getElementById('menuBtn').addEventListener('click', toggleSidebar);
     document.getElementById('menuOverlay').addEventListener('click', toggleSidebar);
-    document.getElementById('btnGoogleLogin').addEventListener('click', loginWithGoogle);
     document.getElementById('btnLogout').addEventListener('click', logout);
 
     document.querySelectorAll('.nav-item[data-page]').forEach(item => {

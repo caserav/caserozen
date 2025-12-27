@@ -10,16 +10,18 @@ async function initAuth() {
 
         if (session) {
             currentUser = session.user;
+            await ensureCaseroProfile();
             showApp();
         } else {
             showLogin();
         }
 
-        _supabase.auth.onAuthStateChange((event, session) => {
+        _supabase.auth.onAuthStateChange(async (event, session) => {
             console.log('Auth state changed:', event);
 
             if (event === 'SIGNED_IN' && session) {
                 currentUser = session.user;
+                await ensureCaseroProfile();
                 showApp();
             } else if (event === 'SIGNED_OUT') {
                 currentUser = null;
@@ -36,24 +38,64 @@ async function initAuth() {
     }
 }
 
-async function loginWithGoogle() {
-    const currentUrl = window.location.href.split('?')[0].split('#')[0];
+async function login(email, password) {
+    const { data, error } = await _supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+    });
 
-    const { error } = await _supabase.auth.signInWithOAuth({
-        provider: 'google',
+    if (error) {
+        console.error('Login error:', error);
+        showToast('Error: ' + error.message);
+        return false;
+    }
+
+    showToast('¡Bienvenido!');
+    return true;
+}
+
+async function register(email, password, fullName) {
+    const { data, error } = await _supabase.auth.signUp({
+        email: email,
+        password: password,
         options: {
-            redirectTo: currentUrl,
-            skipBrowserRedirect: false,
-            queryParams: {
-                access_type: 'offline',
-                prompt: 'consent',
+            data: {
+                full_name: fullName
             }
         }
     });
 
     if (error) {
-        console.error('Auth error:', error);
-        showToast('Error al iniciar sesión: ' + error.message);
+        console.error('Register error:', error);
+        showToast('Error: ' + error.message);
+        return false;
+    }
+
+    showToast('¡Cuenta creada! Iniciando sesión...');
+    return true;
+}
+
+async function ensureCaseroProfile() {
+    if (!currentUser) return;
+
+    const { data: existingProfile } = await _supabase
+        .from('caseros')
+        .select('id')
+        .eq('id', currentUser.id)
+        .maybeSingle();
+
+    if (!existingProfile) {
+        const { error } = await _supabase
+            .from('caseros')
+            .insert({
+                id: currentUser.id,
+                email: currentUser.email,
+                nombre_completo: currentUser.user_metadata?.full_name || ''
+            });
+
+        if (error && error.code !== '23505') {
+            console.error('Error creating casero profile:', error);
+        }
     }
 }
 
