@@ -71,13 +71,21 @@ function showLogin() {
     document.getElementById('app-content').style.display = 'none';
 }
 
-function showApp() {
+async function showApp() {
     document.getElementById('login-page').style.display = 'none';
     document.getElementById('app-content').style.display = 'block';
 
     if (currentUser) {
         const displayName = currentUser.user_metadata?.full_name || currentUser.email;
         document.getElementById('sidebar-username').textContent = displayName;
+
+        isAdmin = await checkIfAdmin();
+
+        if (isAdmin) {
+            console.log('✅ Usuario administrador detectado - Verás TODAS las incidencias');
+        } else {
+            console.log('ℹ️ Usuario casero - Verás solo incidencias de tus propiedades');
+        }
 
         loadDashboard();
         loadProfile();
