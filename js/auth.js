@@ -1,45 +1,78 @@
 // js/auth.js
-export async function initAuth() {
-    console.log("🕵️ Vigilante de sesión activado...");
 
-    // Este es el bumerán: atrapa la sesión cuando vuelves de Google
-    window._supabase.auth.onAuthStateChange((event, session) => {
-        console.log("🔔 Cambio de estado detectado:", event);
-        
-        if (session) {
-            console.log("✅ Usuario detectado:", session.user.email);
-            window.currentUser = session.user;
-            
-            // Forzamos el cambio de pantalla
-            const loginPage = document.getElementById('login-page');
-            const appContent = document.getElementById('app-content');
-            
-            if (loginPage && appContent) {
-                loginPage.classList.add('hidden');
-                appContent.classList.remove('hidden');
-                console.log("🖥️ Pantalla cambiada a la APP");
-            } else {
-                console.error("❌ ERROR: No encuentro los IDs login-page o app-content en el HTML");
-            }
-        }
-    });
+/**
+ * Inicializa la autenticación y gestiona el acceso
+ */
+async function initializeAuth() {
+    console.log("Inicializando sistema de acceso...");
 
-    // Verificación inmediata por si ya estabas logueado
-    const { data: { session } } = await window._supabase.auth.getSession();
+    // 1. Intentamos obtener la sesión real (si existe)
+    const session = supabase.auth.session();
+
     if (session) {
-        console.log("🏠 Sesión previa recuperada");
-        window.currentUser = session.user;
+        console.log("Sesión real detectada para:", session.user.email);
+        setupUserUI(session.user);
+    } else {
+        // 2. MODO TEMERARIO: Si no hay login, forzamos uno falso
+        console.warn("No hay sesión. Forzando entrada como invitado...");
+        
+        const guestUser = {
+            id: 'guest-id-12345', // ID ficticio
+            email: 'invitado@housezen.com',
+            user_metadata: { full_name: 'Invitado HouseZen' }
+        };
+        
+        setupUserUI(guestUser);
     }
 }
 
-window.loginWithGoogle = async () => {
-    console.log("🚀 Lanzando bumerán a Google...");
-    const { error } = await window._supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-            // Usa la URL exacta que Google espera
-            redirectTo: 'https://caserav.github.io/caserozen/'
-        }
+/**
+ * Configura la interfaz según el usuario (real o falso)
+ */
+function setupUserUI(user) {
+    // Guardamos el usuario globalmente para que app.js pueda usarlo
+    window.currentUser = user;
+
+    // Cambiamos lo que se ve en pantalla
+    const loginSection = document.getElementById('login-section');
+    const mainAppSection = document.getElementById('app-section');
+
+    if (loginSection) loginSection.classList.add('hidden');
+    if (mainAppSection) mainAppSection.classList.remove('hidden');
+
+    // Lanzamos la carga de datos desde app.js
+    if (typeof fetchIncidents === 'function') {
+        fetchIncidents();
+    }
+}
+
+/**
+ * Función de Login (la dejamos por si quieres volver a usar Google)
+ */
+async function loginWithGoogle() {
+    const { error } = await supabase.auth.signIn({
+        provider: 'google'
+    }, {
+        redirectTo: REDIRECT_URL
     });
-    if (error) console.error("❌ Error en la salida:", error.message);
-};
+
+    if (error) {
+        console.error("Error en login:", error.message);
+        alert("Error al conectar con Google: " + error.message);
+    }
+}
+
+/**
+ * Función de Cerrar Sesión
+ */
+async function logout() {
+    await supabase.auth.signOut();
+    window.location.reload(); // Recarga la página para volver al estado inicial
+}
+
+// Escuchar cambios de estado (opcional, por robustez)
+supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        initializeAuth();
+    }
+});
